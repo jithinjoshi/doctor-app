@@ -52,3 +52,10 @@ export const refreshToken = ((req, res, next) => {
 
   });
 })
+
+export const checkIsBlocked =  (req,res,next) => {
+  console.log(req.user);
+
+}
+
+

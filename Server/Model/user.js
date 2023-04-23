@@ -17,7 +17,16 @@ const userSchema = new mongoose.Schema({
         unique:false,
         //required:[true,'please provide a password'],
         min:[6,"password atleast contain six characters"]
+    },
+    mobile:{
+        type:Number,
+        unique:true
+    },
+    isActive:{
+        type:Boolean,
+        default:true
     }
 });
 
-export default mongoose.model('User',userSchema);
+
+export const User = mongoose.model('User',userSchema)

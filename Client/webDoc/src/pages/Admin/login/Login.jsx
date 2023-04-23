@@ -46,7 +46,7 @@ const Login = () => {
       signin.then((user) => {
         if (user) {
           console.log("login success");
-          history("/")
+          history("/admin")
 
         }
       }).catch((err) => {

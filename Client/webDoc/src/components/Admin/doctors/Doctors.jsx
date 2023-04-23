@@ -3,14 +3,43 @@ import { DataGrid } from "@mui/x-data-grid";
 import { userColumns, userRows } from "../../../datatablesource";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { deleteDoctor } from "../../../Helpers/adminHelper";
+import Swal from 'sweetalert2'
 
-const Doctors = ({doctors}) => {
+const Doctors = ({doctors,setDoctors}) => {
   const [data, setData] = useState();
 
-  const handleDelete = (id) => {
-    setData(doctors)
-    
-    setData(data.filter((item) => item._id !== id));
+  const handleDelete = async (id) => {
+    try {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const deleteDoc = await deleteDoctor(id);
+          setDoctors(deleteDoc?.data?.doctors)
+          
+          setData()
+          
+          Swal.fire(
+            'Deleted!',
+            'Your file has been deleted.',
+            'success'
+          )
+        }
+      })
+
+      
+      
+    } catch (error) {
+      console.log(error);
+      
+    }
   };
 
   const actionColumn = [
@@ -21,12 +50,12 @@ const Doctors = ({doctors}) => {
       renderCell: (params) => {
         return (
           <div className="cellAction">
-            <Link to="/users/test" style={{ textDecoration: "none" }}>
+            <Link to={`/admin/update-doctor/${params.row._id}`} style={{ textDecoration: "none" }}>
               <div className="viewButton">View</div>
             </Link>
             <div
               className="deleteButton"
-              onClick={() => handleDelete(params.row.id)}
+              onClick={() => handleDelete(params.row._id)}
             >
               Delete
             </div>

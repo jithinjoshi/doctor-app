@@ -3,12 +3,12 @@ axios.defaults.withCredentials = true;
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_URL;
 
 //sign in
-export function signInAdmin(credentials){
-    return new Promise((resolve,reject)=>{
-        axios.post('/api/admin/signin',credentials).then((user)=>{
+export function signInAdmin(credentials) {
+    return new Promise((resolve, reject) => {
+        axios.post('/api/admin/signin', credentials).then((user) => {
             console.log('doctor addedd successfully');
             resolve(user)
-        }).catch((err)=>{
+        }).catch((err) => {
             console.log(err);
             reject(err)
         })
@@ -16,7 +16,7 @@ export function signInAdmin(credentials){
 }
 
 //all doctors
-export async function listDoctors(){
+export async function listDoctors() {
     try {
         return await axios.get('/api/admin/allDoctors');
     } catch (error) {
@@ -26,11 +26,11 @@ export async function listDoctors(){
 }
 
 //add doctor
-export function addDoctor(credentials){
-    return new Promise((resolve,reject)=>{
-        axios.post('/api/admin/addDoctor',credentials).then((response)=>{
+export function addDoctor(credentials) {
+    return new Promise((resolve, reject) => {
+        axios.post('/api/admin/addDoctor', credentials).then((response) => {
             resolve(response);
-        }).catch((err)=>{
+        }).catch((err) => {
             console.log(err);
             reject(err)
         })
@@ -39,7 +39,7 @@ export function addDoctor(credentials){
 }
 
 //all departments
-export async function getAllDepartments(){
+export async function getAllDepartments() {
     try {
         return await axios.get('/api/admin/departments')
     } catch (error) {
@@ -49,11 +49,11 @@ export async function getAllDepartments(){
 }
 
 //add departments
-export function createDepartments(credentials){
-    return new Promise((resolve,reject)=>{
-        axios.post('/api/admin/addDepartment',credentials).then((data)=>{
+export function createDepartments(credentials) {
+    return new Promise((resolve, reject) => {
+        axios.post('/api/admin/addDepartment', credentials).then((data) => {
             resolve(data);
-        }).catch(err =>{
+        }).catch(err => {
             reject(err)
         })
 
@@ -61,12 +61,47 @@ export function createDepartments(credentials){
 }
 
 //get all patients
-export function getAllPatients(){
+export function getAllPatients() {
+    return new Promise((resolve, reject) => {
+        axios.get('/api/admin/patients').then((user) => {
+            resolve(user)
+        }).catch((err) => {
+            reject(err)
+        })
+    })
+}
+
+//delete a doctor
+export const deleteDoctor = async (id) => {
+    try {
+        const deleteDoc = await axios.delete(`/api/admin/delete-doctor/${id}`);
+            return deleteDoc;
+    } catch (error) {
+        return error;
+
+    }
+
+}
+
+//delete department
+export const deleteDepartment = async(id)=>{
+    try {
+        const deleteDep = await axios.delete(`/api/admin/delete-department/${id}`);
+        return deleteDep;
+    } catch (error) {
+        return error;
+        
+    }
+}
+
+//edit doctor
+export function editDoctorProfile(id,credentials){
     return new Promise((resolve,reject)=>{
-        axios.get('/api/admin/patients').then((user)=>{
-            console.log(user,">>>>>>>");
+        axios.put(`/api/admin/edit-doctor/${id}`,credentials).then((user)=>{
+            console.log(user);
             resolve(user)
         }).catch((err)=>{
+            console.log(err);
             reject(err)
         })
     })

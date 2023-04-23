@@ -43,6 +43,25 @@ const doctorSchema = new mongoose.Schema({
     },
     about: {
         type:String
+    },
+    experience:{
+        type:Number,
+    },
+    startTime:{
+        type:String
+    },
+    endTime:{
+        type:String
+    },
+    timings : {
+        type:Array
+    },
+    fees : {
+        type:Number
+    },
+    deleted:{
+        type:Boolean,
+        default:false
     }
 });
 

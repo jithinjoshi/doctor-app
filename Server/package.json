@@ -23,6 +23,9 @@
     "moment": "^2.29.4",
     "mongoose": "^7.0.3",
     "morgan": "^1.10.0",
-    "nodemon": "^2.0.22"
+    "nodemailer": "^6.9.1",
+    "nodemon": "^2.0.22",
+    "stripe": "^12.1.1",
+    "uuid": "^9.0.0"
   }
 }

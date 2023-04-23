@@ -23,7 +23,7 @@ const Departments = () => {
       <Sidebar/>
       <div className="listContainer">
         <Navbar/>
-        <DepartmentList departments={departments}/>
+        <DepartmentList departments={departments} setDepartments={setDepartments}/>
       </div>
     </div>
   )

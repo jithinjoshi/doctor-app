@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'
 import { Schedule } from "../Model/Schedules.js";
 import moment from 'moment'
+import cloudinary from "../utils/cloudinary.js";
 
 export const login = async (req, res) => {
     try {
@@ -23,7 +24,7 @@ export const login = async (req, res) => {
                     sameSite: 'lax'
                 })
 
-                res.status(201).send({ msg: "Login successfull", userId:user._id, token })
+                res.status(201).send({ msg: "Login successfull", user, token })
             } else {
                 res.status(500).send("invalid credentials")
             }
@@ -57,20 +58,33 @@ export const profile = async(req,res)=>{
     }
 }
 
+//edit doctor
 export const edit = async(req,res)=>{
     try {
         let userId = req.params.id;
         let data = req.body;
-        console.log(data);
-        let doctors = await Doctor.findByIdAndUpdate(userId,data);
+        if(req.body.image){
+            const imgId = req.body.imgPublicId;
+            
+            await cloudinary.uploader.destroy(imgId);
+    
+            const uploadRes = await cloudinary.uploader.upload(req.body.image, {
+                allowed_formats: "jpg,png,webp,jpeg",
+                upload_preset: 'webDoc'
+            });
+            data.image = uploadRes;
+            delete data.imgPublicId;
+        }
+        const doctors = await Doctor.findByIdAndUpdate(userId,data);
         if(doctors){
-            res.status(200).json({success:"doctor data updated successfully"})
+            const updatedDoctor = await Doctor.findOne({_id:doctors._id});
+            res.status(200).send(updatedDoctor)
         }else{
             res.status(500).json({err:"Doctor Updation failed"});
         }
         
     } catch (error) {
-        res.status(500).json({err:"unauthorized user"})
+        res.status(500).json(error)
         
     }
 }

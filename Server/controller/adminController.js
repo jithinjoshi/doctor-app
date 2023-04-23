@@ -4,84 +4,85 @@ import jwt from 'jsonwebtoken'
 import cloudinary from '../utils/cloudinary.js';
 import Doctor from '../Model/Doctor.js';
 import { Department } from '../Model/Department.js';
-import User from '../Model/User.js';
+import { User } from '../Model/user.js';
 
 
 //admin signup
-export const signup = (async (req,res)=>{
+export const signup = (async (req, res) => {
     try {
-        const {email,password} = req.body;
+        const { email, password } = req.body;
 
 
-        if(email && hash){
-            const hash = await bcrypt.hash(password,10);
+        if (email && hash) {
+            const hash = await bcrypt.hash(password, 10);
             const adminSignIn = new Admin({
-                email:email,
-                password:hash
+                email: email,
+                password: hash
             });
-            adminSignIn.save().then(()=>{
-                res.status(201).send({success:"admin registered successfully"});
-            }).catch((err)=>{
-                res.status(404).send({err:"admin registration failure"})
+            adminSignIn.save().then(() => {
+                res.status(201).send({ success: "admin registered successfully" });
+            }).catch((err) => {
+                res.status(404).send({ err: "admin registration failure" })
             })
 
-        }else{
-            return res.status(500).send({err:'invalid credentials'})
+        } else {
+            return res.status(500).send({ err: 'invalid credentials' })
         }
 
-        
+
     } catch (error) {
-        res.status(500).send({err:error})
-        
+        res.status(500).send({ err: error })
+
     }
 })
 
 
 //admin signin
-export const signin = (async(req,res)=>{
+export const signin = (async (req, res) => {
     try {
-        const {email,password} = req.body;
-        let admin = await Admin.findOne({email});
+        const { email, password } = req.body;
+        let admin = await Admin.findOne({ email });
 
-        if(admin){
-            const compare = await bcrypt.compare(password,admin.password);
+        if (admin) {
+            const compare = await bcrypt.compare(password, admin.password);
             console.log(compare);
-            if(compare){
-                const token = jwt.sign({userId:admin._id,isAdmin:admin.isAdmin},process.env.JWT_SECRET,{expiresIn:'30min'});
+            if (compare) {
+                const token = jwt.sign({ userId: admin._id, isAdmin: admin.isAdmin }, process.env.JWT_SECRET, { expiresIn: '30min' });
                 console.log(token);
 
-                res.cookie(String(admin._id),token,{
-                    path:"/",
-                    expires:new Date(Date.now()+1000 * 30),
-                    httpOnly:true,
-                    sameSite:'lax'
+                res.cookie(String(admin._id), token, {
+                    path: "/",
+                    expires: new Date(Date.now() + 1000 * 30),
+                    httpOnly: true,
+                    sameSite: 'lax'
                 })
-                res.status(201).send({msg:"Login successfull",username:admin.email,token})
-            }else{
+                res.status(201).send({ msg: "Login successfull", username: admin.email, token })
+            } else {
                 console.log("error ");
-                res.status(500).send({err:'invalid credentials'}); 
+                res.status(500).send({ err: 'invalid credentials' });
             }
         }
     } catch (error) {
         console.log("error....");
-        return res.status(500).send({err:error})
+        return res.status(500).send({ err: error })
     }
 });
 
 
 //create doctors
-export const addDoctor = (async(req,res)=>{
+export const addDoctor = (async (req, res) => {
     try {
-        const {firstName,lastName,mobile,dob,email,department,address,password,image} = req.body;
-        
-        const hash = await bcrypt.hash(password,10);
+        const { firstName, lastName, mobile, dob, email, department, address, password, image } = req.body;
 
-        if(image){
-           const uploadRes =  await cloudinary.uploader.upload(image,{
-                upload_preset:'webDoc'
-            })
+        const hash = await bcrypt.hash(password, 10);
 
-            if(uploadRes){
+        if (image) {
+            const uploadRes = await cloudinary.uploader.upload(image, {
+                allowed_formats: "jpg,png,webp,jpeg",
+                upload_preset: 'webDoc'
+            });
+
+            if (uploadRes) {
                 const addNewDoctor = new Doctor({
                     firstName,
                     lastName,
@@ -90,98 +91,175 @@ export const addDoctor = (async(req,res)=>{
                     email,
                     department,
                     address,
-                    password:hash,
-                    image:uploadRes
+                    password: hash,
+                    image: uploadRes
                 });
 
-                addNewDoctor.save().then(()=>{
+                addNewDoctor.save().then(() => {
                     console.log("data added");
-                    res.status(200).send({success:"doctor added successfully"});
-                }).catch((err)=>{
+                    res.status(200).send({ success: "doctor added successfully" });
+                }).catch((err) => {
                     console.log(err);
-                    res.status(500).send({err:"something went wrong"})
+                    res.status(500).send({ err: "something went wrong" })
                 })
-                
-            }else{
+
+            } else {
                 console.log("something wrong");
             }
         }
     } catch (error) {
         console.log(error);
-        return res.status(500).json({err:"Adding doctor failed"})
+        return res.status(500).json({ err: "Adding doctor failed" })
     }
 })
 
 
 //get all doctors
-export const getAllDoctors = (async(req,res)=>{
+export const getAllDoctors = (async (req, res) => {
     try {
-        const allDoctors = await Doctor.find({});
-        console.log(allDoctors);
-        res.status(200).json({data:allDoctors})
+        const allDoctors = await Doctor.find({ deleted: false });
+        res.status(200).json({ data: allDoctors })
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({err:"cant find doctors"})
-        
+        return res.status(500).json({ err: "cant find doctors" })
     }
-
 });
 
 
 //create department
-export const createDepartment = async(req,res)=>{
+export const createDepartment = async (req, res) => {
     try {
-        const {department} = req.body;
+        const { department } = req.body;
         const lowercaseDepartment = department.trim().toLowerCase();
-        const checkDepartment = await Department.findOne({lowercaseDepartment});
+        const checkDepartment = await Department.findOne({ lowercaseDepartment });
 
-        if(!checkDepartment){
+        if (!checkDepartment) {
             const newDepartment = new Department({
-                department:lowercaseDepartment
+                department: lowercaseDepartment
             });
-            newDepartment.save().then(()=>{
-                console.log("successfully added the department");
-                res.status(200).json({success:"department added"})
-            }).catch((err)=>{
+            newDepartment.save().then(async () => {
+                const departments = await Department.find({})
+                res.status(200).json(departments)
+            }).catch((err) => {
                 console.log(err);
-                res.status(500).json({err:"can't add department"})
+                res.status(500).json({ err: "can't add department" })
             })
-        }else{
-            res.status(500).json({err:"department is already exist"});
+        } else {
+            res.status(500).json({ err: "department is already exist" });
         }
-        
+
     } catch (error) {
-        res.status(500).json({err:"can't create department"});
+        res.status(500).json({ err: "can't create department" });
     }
 }
 
 
 //get all departments
-export const getAllDepartments = async(req,res) => {
+export const getAllDepartments = async (req, res) => {
     try {
         const departments = await Department.find({});
 
-        if(departments){
+        if (departments) {
             res.status(201).send(departments);
-        }else{
-            res.status(500).send({err:"something wrong"})
+        } else {
+            res.status(500).send({ err: "something wrong" })
         }
-        
+
     } catch (error) {
-        res.status(500).json({err:"can't get departments"})        
+        res.status(500).json({ err: "can't get departments" })
     }
 };
 
+
 //get all patients
-export const getAllPatients = async (req,res)=>{
+export const getAllPatients = async (req, res) => {
     try {
         const patients = await User.find({});
         res.status(201).send(patients);
-        
-        
+
+
     } catch (error) {
-        res.status(500).json({err:"can't get the patients"});
+        res.status(500).json({ err: "can't get the patients" });
+    }
+};
+
+
+//delete a doctor
+export const deleteDoctor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const doctors = await Doctor.findByIdAndUpdate(id, { deleted: true });
+        if (doctors) {
+            const updatedDoctors = await Doctor.find({ deleted: false });
+            res.status(200).json({ doctors: updatedDoctors })
+        }
+
+    } catch (error) {
+        res.status(500).json({ err: "can't delete the doctor" })
     }
 }
 
+//delete a department
+export const deleteDepartment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleteDep = await Department.findByIdAndDelete(id);
+        if (deleteDep) {
+            const departments = await Department.find({});
+            res.status(201).json({ departments });
+        } else {
+            res.status(500).json({ err: "dletetion failed" })
+        }
+    } catch (error) {
+        res.status(500).json({ err: "can't delete department" })
+
+    }
+
+}
+
+//block user
+export const blockUser = async (req, res) => {
+    try {
+        const id = req.params;
+        const block = await User.findByIdAndUpdate(id, { isActive: false });
+        if (block) {
+            return res.status(200).json({ success: "user blocked successfully" })
+        }
+        return res.status(500).json({ err: "user blocking failed" })
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error })
+    }
+}
+
+export const editDoctor = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const data = req.body;
+
+        if (req.body.image) {
+            const imgId = req.body.imgPublicId;
+
+            await cloudinary.uploader.destroy(imgId);
+
+            const uploadRes = await cloudinary.uploader.upload(req.body.image, {
+                allowed_formats: "jpg,png,webp,jpeg",
+                upload_preset: 'webDoc'
+            });
+            data.image = uploadRes;
+            delete data.imgPublicId;
+        }
+
+        const doctors = await Doctor.findByIdAndUpdate(userId, data);
+        if (doctors) {
+            const updatedDoctor = await Doctor.findOne({ _id: doctors._id });
+            res.status(200).send(updatedDoctor)
+        } else {
+            res.status(500).json({ err: "Doctor Updation failed" });
+        }
+
+    } catch (error) {
+        res.status(500).json(error)
+    }
+}
 

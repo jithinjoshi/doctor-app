@@ -1,14 +1,29 @@
 import React, { useEffect, useState } from 'react'
-import { addDoctor,getAllDepartments } from '../../../Helpers/adminHelper';
+import { addDoctor, getAllDepartments } from '../../../Helpers/adminHelper';
 import { Toaster, toast } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { useNavigate } from 'react-router-dom';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import moment from 'moment'
 
 const AddDoctor = () => {
+
+    const currentDate = new Date();
+    const year = currentDate.getFullYear() - 23;
+    const minYear = currentDate.getFullYear() - 80;
+    const minDate = new Date(minYear, 0, 1);
+    const dateBefore23Years = new Date(year, 0, 30);
+
     const history = useNavigate();
     const [image, setImage] = useState("");
     const [departments, setDepartments] = useState();
-    const [value,setFieldValue] = useState({});
+    const [value, setFieldValue] = useState({});
+    const [startDate, setStartDate] = useState(new Date('01/01/2000'));
+
+    
+
+
 
 
     const handleDoctorImageUpload = (e) => {
@@ -30,13 +45,24 @@ const AddDoctor = () => {
         }
     }
 
+    let result;
+    if (image) {
+        
+        const delimiter = '/';
+        const end = ';'
+        const index = image.indexOf(delimiter);
+        const endIndex = image.indexOf(end);
+        result = image.slice(index + 1,endIndex);
+
+    }
+
     const validate = values => {
         const errors = {};
 
 
         if (!values.firstName) {
             errors.firstName = toast.error("first name is required");
-        } else if (values.firstName.length < 4) {
+        } else if (values.firstName.length < 3) {
             errors.firstName = toast.error("firstname should contain three characters")
         }
         else if (!values.lastName) {
@@ -58,18 +84,22 @@ const AddDoctor = () => {
         } else if (values.mobile.length < 11) {
             errors.mobile = toast.error("phone number must valid")
         }
-        else if (!values.dob) {
-            errors.dob = toast.error("DOB is required");
-        }
         else if (!values.password) {
             errors.password = toast.error("password is required")
         } else if (values.password < 7) {
             errors.password = toast.error("password must contain six characters")
         }
 
-        if(!image){
+        else if (!image) {
             errors.image = toast.error("must contain a image")
         }
+        else if (!startDate) {
+            errors.dob = toast.error("dob is required")
+        }else if(result !== 'jpg' && result !== 'jpeg' && result !== 'png' && result !== 'webp'){
+            errors.image = toast.error("This format of image is not supported")
+        }
+
+
 
         return errors
     }
@@ -82,33 +112,33 @@ const AddDoctor = () => {
             email: '',
             address: '',
             mobile: '',
-            dob: '',
             password: ''
         },
         validate,
         validateOnBlur: false,
         validateOnChange: false,
         onSubmit: async values => {
-            let img = { image: image }
-            const imgCopy = Object.assign({},values,img,value);
-            if(!imgCopy.department){
+            const date = moment(startDate).format('MM-DD-YYYY');
+            let img = { image: image,dob:date }
+            const imgCopy = Object.assign({}, values, img,value);
+
+            if (!imgCopy.department) {
                 imgCopy.department = departments[0].department;
             }
-            console.log(imgCopy);
             let doctor = addDoctor(imgCopy)
 
-            toast.promise(doctor,{
-                loading : 'creating...',
-                success : <b>Doctor added successfully</b>,
-                error : <b>Can't add doctor</b>
+            toast.promise(doctor, {
+                loading: 'creating...',
+                success: <b>Doctor added successfully</b>,
+                error: <b>Can't add doctor</b>
             })
 
-            doctor.then((user)=>{
-                if(user){
+            doctor.then((user) => {
+                if (user) {
                     history("/admin/doctors")
 
                 }
-            }).catch((err)=>{
+            }).catch((err) => {
                 console.log("login failure");
             })
         }
@@ -151,7 +181,7 @@ const AddDoctor = () => {
                                             </div>
                                             :
                                             <div className="flex flex-wrap justify-center mb-5">
-                                                <div className="w-6/12 sm:w-4/12 px-4">
+                                                <div className="w-16 h-16 sm:w-4/12 rounded-full">
                                                     <p>image will appear here</p>
                                                 </div>
                                             </div>
@@ -164,7 +194,7 @@ const AddDoctor = () => {
                                                     <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                                                     <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span></p>
                                                 </div>
-                                                <input id="dropzone-file" type="file" class="hidden" accept='image/' onChange={handleDoctorImageUpload} />
+                                                <input id="dropzone-file" type="file" class="hidden" accept='image/*' onChange={handleDoctorImageUpload} />
                                             </label>
                                         </div>
 
@@ -214,17 +244,17 @@ const AddDoctor = () => {
 
                                             <div className='md:col-span-2'>
                                                 <label for="city">Department</label>
-                                                <select name="Department" id="department" class="h-10 border mt-1 rounded px-4 w-full bg-gray-50" onChange={(e) => setFieldValue({department:e.target.value})}>
+                                                <select name="Department" id="department" class="h-10 border mt-1 rounded px-4 w-full bg-gray-50" onChange={(e) => setFieldValue({ department: e.target.value })}>
 
                                                     {
-                                                        departments ? 
-                                                        departments.map((department) => {
-                                                            return (
-                                                                <option value={department.department}>{department.department}</option>
-                                                            )
-                                                        })
-                                                        :
-                                                        <option></option>
+                                                        departments ?
+                                                            departments.map((department) => {
+                                                                return (
+                                                                    <option value={department.department}>{department.department}</option>
+                                                                )
+                                                            })
+                                                            :
+                                                            <option></option>
                                                     }
                                                 </select>
                                             </div>
@@ -239,9 +269,8 @@ const AddDoctor = () => {
 
                                             <div class="md:col-span-2">
                                                 <label for="city">Date Of birth</label>
-                                                <input type="date" name="dob" id="city" class="h-10 border mt-1 rounded px-4 w-full bg-gray-50" placeholder="" onChange={formik.handleChange}
-                                                    onBlur={formik.handleBlur}
-                                                    value={formik.values.dob} />
+                                                <DatePicker name="dob" id='city' className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" selected={startDate} value={startDate} onChange={(date) => setStartDate(date)} maxDate={dateBefore23Years} minDate={minDate}
+                                                    onBlur={formik.handleBlur} />
                                             </div>
 
                                             <div class="md:col-span-3">
@@ -250,6 +279,12 @@ const AddDoctor = () => {
                                                     onBlur={formik.handleBlur}
                                                     value={formik.values.password} />
                                             </div>
+
+
+
+
+
+
                                             <div class="md:col-span-5 text-right">
                                                 <div class="inline-flex items-end">
                                                     <button type='submit' class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>

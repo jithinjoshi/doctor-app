@@ -15,7 +15,9 @@ const scheduleSchema = new mongoose.Schema({
     },
     schedules:{
         type:Array
-    }
-})
+    },
+},
+{ timestamps: true }
+)
 
 export const Schedule = mongoose.model('Schedule',scheduleSchema)

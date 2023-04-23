@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { createDepartments } from '../../../Helpers/adminHelper';
+import { createDepartments, getAllDepartments } from '../../../Helpers/adminHelper';
 import { useFormik } from 'formik'
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from 'react-hot-toast'
@@ -14,11 +14,10 @@ const validate = values => {
         errors.department = toast.error('not valid department');
     }
     return errors
-
 }
 
 
-const AddDepartment = ({ onClose, visible }) => {
+const AddDepartment = ({ onClose, visible, setDepartments }) => {
     const history = useNavigate();
     const formik = useFormik({
         initialValues: {
@@ -32,15 +31,16 @@ const AddDepartment = ({ onClose, visible }) => {
             toast.promise(departments, {
                 loading: 'searching...',
                 success: <b>department added successfully</b>,
-                error: <b>can't enter the data</b>
+                error: <b>This department already exist</b>
             })
-            departments.then((data) => {
+            departments.then(async (data) => {
                 if (data) {
+                    setDepartments(data?.data);
 
-                    console.log("department added successfully");
-                    setTimeout(()=>{
-                        //onClose();
-                    },3000)
+
+                    setTimeout(() => {
+                        onClose();
+                    }, 1000)
 
                 }
             }).catch((err) => {
@@ -59,10 +59,15 @@ const AddDepartment = ({ onClose, visible }) => {
 
         <div id='container' className='fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center' onClick={handleOnClose}>
             <Toaster position='top-center' reverseOrder={false}></Toaster>
-            <div className="bg-white p-2 rounded w-72">
+            <div className="bg-white p-2 rounded w-80 relative">
                 <h1 className="font-semibold text-center text-xl text-gray-700 mt-2">
                     Add Department
                 </h1>
+                <div class="absolute top-0 right-0">
+                    <button class="bg-white text-black hover:text-red-600 font-bold py-2 px-4 rounded" onClick={() => onClose()}>
+                        X
+                    </button>
+                </div>
                 <form onSubmit={formik.handleSubmit}>
                     <div className="flex flex-col mt-3">
                         <input

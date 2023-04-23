@@ -10,6 +10,7 @@ import userRouter from './router/user.js';
 import adminRouter from './router/admin.js';
 import doctorRouter from './router/doctor.js'
 
+
 const PORT = process.env.PORT;
 const app = express();
 
